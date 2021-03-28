@@ -1,17 +1,40 @@
 <template>
 <v-sheet rounded="lg">
-    <v-list color="transparent">
+    <v-list color="transparent" shaped>
+        <v-list-item>
+            <v-list-item-title>Edit</v-list-item-title>
+        </v-list-item>
+        <v-divider class="my-2"></v-divider>
         <v-list-item v-for="tag in tags" :key="tag.title" link>
             <v-list-item-content>
-                <v-list-item-title>
-                    {{ tag.title }}
-                </v-list-item-title>
+
+                <template>
+                    <v-menu v-model="menu" :close-on-content-click="false" :nudge-width="50" offset-x>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-list-title v-bind="attrs" v-on="on">
+                                {{ tag.title }}
+                            </v-list-title>
+                        </template>
+
+                        <v-card>
+                            <v-list>
+                                <v-list-item>
+                                    <v-list-item-title>Edit</v-list-item-title>
+                                </v-list-item>
+
+                                <v-list-item>
+                                    <v-list-item-title>Delete</v-list-item-title>
+                                </v-list-item>
+                            </v-list>
+                        </v-card>
+                    </v-menu>
+                </template>
             </v-list-item-content>
         </v-list-item>
 
         <v-divider class="my-2"></v-divider>
 
-        <v-list-item link color="grey lighten-4">
+        <v-list-item>
             <v-list-item-content>
                 <template>
                     <v-row justify="center">

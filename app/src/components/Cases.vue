@@ -28,10 +28,10 @@
                                     <v-text-field v-model="editedItem.description" label="Description"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="6" md="4">
-                                    <v-select :items="contacts" v-model="editedContact" item-text="email" item-value="id" label="contact" return-object></v-select>
+                                    <v-select :items="contacts" v-model="editedItem.contact" item-text="email" item-value="id" label="contact" return-object></v-select>
                                 </v-col>
                                 <v-col cols="12" sm="6" md="4">
-                                    <v-select :items="tags" v-model="editedTag" item-text="title" item-value="id" attach chips label="tag" return-object>
+                                    <v-select :items="tags" v-model="editedItem.tag" item-text="title" item-value="id" attach chips label="tag" return-object>
                                         <template #selection="{ item }">
                                             <v-chip :color="item.color" dark>{{item.title}}</v-chip>
                                         </template>
@@ -139,26 +139,6 @@ export default {
         contacts: [],
         tags: [],
         editedIndex: -1,
-        defaultContact: {
-            email: '',
-            first_name: '',
-            last_name: '',
-            phone: '',
-        },
-        defaultTag: {
-            title: '',
-            color: '',
-        },
-        editedContact: {
-            email: '',
-            first_name: '',
-            last_name: '',
-            phone: '',
-        },
-        editedTag: {
-            title: '',
-            color: '',
-        },
         editedItem: {
             title: '',
             description: '',
@@ -194,8 +174,6 @@ export default {
         editItem(item) {
             this.editedIndex = this.cases.indexOf(item)
             this.editedItem = Object.assign({}, item)
-            this.editedContact = Object.assign({}, item.contact)
-            this.editedTag = Object.assign({}, item.tag)
             this.dialog = true
         },
         deleteItem(item) {
@@ -211,8 +189,6 @@ export default {
             this.dialog = false
             this.$nextTick(() => {
                 this.editedItem = Object.assign({}, this.defaultItem)
-                this.editedContact = Object.assign({}, this.defaultContact)
-                this.editedTag = Object.assign({}, this.defaultTag)
                 this.editedIndex = -1
             })
         },
@@ -255,8 +231,8 @@ export default {
         postCase() {
             axios.post(`https://smart-mail-api.azurewebsites.net/case/${this.editedItem.title}`, {
                     description: this.editedItem.description,
-                    tag_id: this.editedTag.id,
-                    contact_id: this.editedContact.id,
+                    tag_id: this.editedItem.tag.id,
+                    contact_id: this.editedItem.contact.id,
                 })
                 .then(function (response) {
                     console.log(response);
@@ -269,8 +245,8 @@ export default {
         updateCase() {
             axios.put(`https://smart-mail-api.azurewebsites.net/case/${this.editedItem.title}`, {
                     description: this.editedItem.description,
-                    tag_id: this.editedTag.id,
-                    contact_id: this.editedContact.id,
+                    tag_id: this.editedItem.tag.id,
+                    contact_id: this.editedItem.contact.id,
                 })
                 .then(function (response) {
                     console.log(response);
@@ -278,8 +254,6 @@ export default {
                 .catch(function (error) {
                     console.log(error);
                 });
-                console.log(this.editedContact);
-                console.log(this.editedTag);
         },
         deleteCase() {
             axios.delete(`https://smart-mail-api.azurewebsites.net/case/${this.editedItem.title}`)
