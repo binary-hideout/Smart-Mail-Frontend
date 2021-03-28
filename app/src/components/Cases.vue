@@ -1,5 +1,5 @@
 <template>
-<v-data-table :headers="headers" :items="contacts" :search="search" sort-by="email" class="elevation-1">
+<v-data-table :headers="headers" :items="cases" :search="search" sort-by="email" class="elevation-1">
     <template v-slot:top>
         <v-toolbar flat>
             <v-toolbar-title>
@@ -7,7 +7,7 @@
             </v-toolbar-title>
             <v-divider class="mx-4" inset vertical></v-divider>
             <v-spacer></v-spacer>
-            <v-dialog v-model="dialog" max-width="500px">
+            <v-dialog v-model="dialog" scrollable max-width="700px">
                 <template v-slot:activator="{ on, attrs }">
                     <v-btn rounded color="cyan lighten-1" dark class="mb-2" v-bind="attrs" v-on="on">
                         New Item
@@ -22,16 +22,20 @@
                         <v-container>
                             <v-row>
                                 <v-col cols="12" sm="6" md="4">
-                                    <v-text-field v-model="editedItem.email" label="E-mail"></v-text-field>
+                                    <v-text-field v-model="editedItem.title" label="Title"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="6" md="4">
-                                    <v-text-field v-model="editedItem.first_name" label="First name"></v-text-field>
+                                    <v-text-field v-model="editedItem.description" label="Description"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="6" md="4">
-                                    <v-text-field v-model="editedItem.last_name" label="Last name"></v-text-field>
+                                    <v-select :items="contacts" v-model="editedContact" item-text="email" item-value="id" label="contact" return-object></v-select>
                                 </v-col>
                                 <v-col cols="12" sm="6" md="4">
-                                    <v-text-field v-model="editedItem.phone" label="Phone"></v-text-field>
+                                    <v-select :items="tags" v-model="editedTag" item-text="title" item-value="id" attach chips label="tag" return-object>
+                                        <template #selection="{ item }">
+                                            <v-chip :color="item.color" dark>{{item.title}}</v-chip>
+                                        </template>
+                                    </v-select>
                                 </v-col>
                             </v-row>
                         </v-container>
@@ -61,16 +65,26 @@
             </v-dialog>
         </v-toolbar>
     </template>
+    <template v-slot:item.tag.title="{ item }">
+        <v-chip :color="item.tag.color" dark>
+            {{ item.tag.title }}
+        </v-chip>
+    </template>
     <template v-slot:item.actions="{ item }">
-        <v-icon small class="mr-2" @click="editItem(item)">
+        <v-icon small @click="editItem(item)">
             mdi-pencil
         </v-icon>
         <v-icon small @click="deleteItem(item)">
             mdi-delete
         </v-icon>
     </template>
+    <template v-slot:item.call="{ item }">
+        <v-icon small @click="editItem(item)">
+            mdi-cellphone
+        </v-icon>
+    </template>
     <template v-slot:no-data>
-        <v-btn color="primary" @click="fetchContacts">
+        <v-btn color="primary" @click="fetchCases">
             Reset
         </v-btn>
     </template>
@@ -86,45 +100,76 @@ export default {
         dialogDelete: false,
         search: '',
         headers: [{
-                text: 'Email',
+                text: 'Title',
                 align: 'start',
-                value: 'email',
+                value: 'title',
             },
             {
-                text: 'First name',
-                value: 'first_name'
+                text: 'Description',
+                value: 'description'
             },
             {
-                text: 'Last name',
-                value: 'last_name'
+                text: 'Email',
+                value: 'contact.email'
             },
             {
                 text: 'Phone',
-                value: 'phone'
+                value: 'contact.phone'
             },
             {
                 text: 'Date',
                 value: 'created'
             },
             {
+                text: 'Status',
+                value: 'tag.title'
+            },
+            {
                 text: 'Actions',
                 value: 'actions',
                 sortable: false
             },
+            {
+                text: 'Call',
+                value: 'call',
+                sortable: false
+            },
         ],
+        cases: [],
         contacts: [],
+        tags: [],
         editedIndex: -1,
-        editedItem: {
+        defaultContact: {
             email: '',
             first_name: '',
             last_name: '',
             phone: '',
         },
-        defaultItem: {
+        defaultTag: {
+            title: '',
+            color: '',
+        },
+        editedContact: {
             email: '',
             first_name: '',
             last_name: '',
             phone: '',
+        },
+        editedTag: {
+            title: '',
+            color: '',
+        },
+        editedItem: {
+            title: '',
+            description: '',
+            contact: {},
+            tag: {},
+        },
+        defaultItem: {
+            title: '',
+            description: '',
+            contact: {},
+            tag: {},
         },
     }),
     computed: {
@@ -141,27 +186,33 @@ export default {
         },
     },
     created() {
+        this.fetchCases(),
+        this.fetchTags(),
         this.fetchContacts()
     },
     methods: {
         editItem(item) {
-            this.editedIndex = this.contacts.indexOf(item)
+            this.editedIndex = this.cases.indexOf(item)
             this.editedItem = Object.assign({}, item)
+            this.editedContact = Object.assign({}, item.contact)
+            this.editedTag = Object.assign({}, item.tag)
             this.dialog = true
         },
         deleteItem(item) {
-            this.editedIndex = this.contacts.indexOf(item)
+            this.editedIndex = this.cases.indexOf(item)
             this.editedItem = Object.assign({}, item)
             this.dialogDelete = true
         },
         deleteItemConfirm() {
-            this.deleteContact()
+            this.deleteCase()
             this.closeDelete()
         },
         close() {
             this.dialog = false
             this.$nextTick(() => {
                 this.editedItem = Object.assign({}, this.defaultItem)
+                this.editedContact = Object.assign({}, this.defaultContact)
+                this.editedTag = Object.assign({}, this.defaultTag)
                 this.editedIndex = -1
             })
         },
@@ -174,11 +225,25 @@ export default {
         },
         save() {
             if (this.editedIndex > -1) {
-                this.updateContact()
+                this.updateCase()
             } else {
-                this.postContact()
+                this.postCase()
             }
             this.close()
+        },
+        fetchCases() {
+            axios({
+                method: 'get',
+                url: 'https://smart-mail-api.azurewebsites.net/cases',
+                responseType: 'json',
+            }).then(response => (this.cases = response.data.content))
+        },
+        fetchTags() {
+            axios({
+                method: 'get',
+                url: 'https://smart-mail-api.azurewebsites.net/tags',
+                responseType: 'json',
+            }).then(response => (this.tags = response.data.content))
         },
         fetchContacts() {
             axios({
@@ -187,11 +252,11 @@ export default {
                 responseType: 'json',
             }).then(response => (this.contacts = response.data.content))
         },
-        postContact() {
-            axios.post(`https://smart-mail-api.azurewebsites.net/contact/${this.editedItem.email}`, {
-                    first_name: this.editedItem.first_name,
-                    last_name: this.editedItem.last_name,
-                    phone: this.editedItem.phone,
+        postCase() {
+            axios.post(`https://smart-mail-api.azurewebsites.net/case/${this.editedItem.title}`, {
+                    description: this.editedItem.description,
+                    tag_id: this.editedTag.id,
+                    contact_id: this.editedContact.id,
                 })
                 .then(function (response) {
                     console.log(response);
@@ -199,12 +264,13 @@ export default {
                 .catch(function (error) {
                     console.log(error);
                 });
+                console.log(this.editedItem);
         },
-        updateContact() {
-            axios.put(`https://smart-mail-api.azurewebsites.net/contact/${this.editedItem.email}`, {
-                    first_name: this.editedItem.first_name,
-                    last_name: this.editedItem.last_name,
-                    phone: this.editedItem.phone,
+        updateCase() {
+            axios.put(`https://smart-mail-api.azurewebsites.net/case/${this.editedItem.title}`, {
+                    description: this.editedItem.description,
+                    tag_id: this.editedTag.id,
+                    contact_id: this.editedContact.id,
                 })
                 .then(function (response) {
                     console.log(response);
@@ -212,9 +278,11 @@ export default {
                 .catch(function (error) {
                     console.log(error);
                 });
+                console.log(this.editedContact);
+                console.log(this.editedTag);
         },
-        deleteContact() {
-            axios.delete(`https://smart-mail-api.azurewebsites.net/contact/${this.editedItem.email}`)
+        deleteCase() {
+            axios.delete(`https://smart-mail-api.azurewebsites.net/case/${this.editedItem.title}`)
                 .then(function (response) {
                     console.log(response);
                 })

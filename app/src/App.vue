@@ -8,19 +8,19 @@
     </v-app-bar>
 
     <v-main>
-      <Contacts/>
+      <Dashboard />
     </v-main>
   </v-app>
 </template>
 
 <script>
-import Contacts from './components/Contacts';
+import Dashboard from './components/Dashboard';
 
 export default {
   name: 'App',
 
   components: {
-    Contacts,
+    Dashboard,
   },
 
   data: () => ({

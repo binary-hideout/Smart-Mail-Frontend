@@ -7,9 +7,8 @@
                 <v-col cols="2">
                     <Sidebar />
                 </v-col>
-
                 <v-col>
-                    <Contacts />
+                    <Cases />
                 </v-col>
             </v-row>
         </v-container>
@@ -20,13 +19,14 @@
 <script>
 import Sidebar from './Sidebar';
 import ApplicationBar from './ApplicationBar';
-import Contacts from './Contacts';
+// import Contacts from './Contacts';
+import Cases from './Cases';
 
 export default {
     components: {
         ApplicationBar,
+        Cases,
         Sidebar,
-        Contacts,
     }
 }
 </script>
