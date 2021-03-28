@@ -1,35 +1,21 @@
 <template>
 <v-sheet rounded="lg">
+    <v-subheader>
+        Tags
+    </v-subheader>
     <v-list color="transparent" shaped>
-        <v-list-item>
-            <v-list-item-title>Edit</v-list-item-title>
-        </v-list-item>
-        <v-divider class="my-2"></v-divider>
         <v-list-item v-for="tag in tags" :key="tag.title" link>
+
             <v-list-item-content>
-
-                <template>
-                    <v-menu v-model="menu" :close-on-content-click="false" :nudge-width="50" offset-x>
-                        <template v-slot:activator="{ on, attrs }">
-                            <v-list-title v-bind="attrs" v-on="on">
-                                {{ tag.title }}
-                            </v-list-title>
-                        </template>
-
-                        <v-card>
-                            <v-list>
-                                <v-list-item>
-                                    <v-list-item-title>Edit</v-list-item-title>
-                                </v-list-item>
-
-                                <v-list-item>
-                                    <v-list-item-title>Delete</v-list-item-title>
-                                </v-list-item>
-                            </v-list>
-                        </v-card>
-                    </v-menu>
-                </template>
+                <v-row>
+                    <v-list-item-title @click="editTag(tag)">
+                        {{ tag.title }}
+                    </v-list-item-title>
+                </v-row>
             </v-list-item-content>
+            <v-list-item-icon>
+                <v-icon>mdi-menu</v-icon>
+            </v-list-item-icon>
         </v-list-item>
 
         <v-divider class="my-2"></v-divider>
@@ -76,6 +62,43 @@
             </v-list-item-content>
         </v-list-item>
     </v-list>
+
+    <template>
+        <v-row justify="center">
+            <v-dialog v-model="dialogTag" persistent max-width="600px">
+                <v-card>
+                    <v-card-title>
+                        <span class="headline">Edit</span>
+                    </v-card-title>
+                    <v-card-text>
+                        <v-container>
+                            <v-row>
+                                <v-col cols="12" sm="6" md="4">
+                                    <v-text-field v-model="editedItem.title" label="Title" required></v-text-field>
+                                </v-col>
+                                <v-col cols="12">
+                                    <v-color-picker v-model="editedItem.color" dot-size="25" swatches-max-height="200"></v-color-picker>
+                                </v-col>
+                            </v-row>
+                        </v-container>
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn color="blue darken-1" text @click="closeTagDialog">
+                            Close
+                        </v-btn>
+                        <v-btn color="blue darken-1" text @click="saveTag">
+                            Save
+                        </v-btn>
+                        <v-btn color="blue darken-1" text @click="deleteDialog">
+                            Delete
+                        </v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+        </v-row>
+    </template>
+
 </v-sheet>
 </template>
 
@@ -87,6 +110,7 @@ export default {
         return {
             tags: [],
             dialog: false,
+            dialogTag: false,
             editedIndex: -1,
             editedItem: {
                 title: '',
@@ -96,6 +120,8 @@ export default {
                 title: '',
                 color: '',
             },
+            actions: ['Edit', 'Delete'],
+            menu: false,
         }
     },
     created() {
@@ -111,7 +137,6 @@ export default {
         },
         postTag() {
             axios.post(`https://smart-mail-api.azurewebsites.net/tag/${this.editedItem.title}`, {
-                    title: this.editedItem.title,
                     color: this.editedItem.color,
                 })
                 .then(function (response) {
@@ -123,7 +148,6 @@ export default {
         },
         putTag() {
             axios.put(`https://smart-mail-api.azurewebsites.net/tag/${this.editedItem.title}`, {
-                    title: this.editedItem.title,
                     color: this.editedItem.color,
                 })
                 .then(function (response) {
@@ -132,6 +156,15 @@ export default {
                 .catch(function (error) {
                     console.log(error);
                 });
+        },
+        deleteTag() {
+            axios.delete(`https://smart-mail-api.azurewebsites.net/tag/${this.editedItem.title}`)
+                .then(function (response) {
+                    console.log(response);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                })
         },
         save() {
             this.postTag()
@@ -144,6 +177,29 @@ export default {
                 this.editedIndex = -1
             })
         },
+        addItem() {
+            this.dialog = true
+        },
+        closeTagDialog() {
+            this.dialogTag = false
+        },
+        editTag(tag) {
+            this.editedIndex = this.tags.indexOf(tag)
+            this.editedItem = Object.assign({}, tag)
+            this.dialogTag = true
+        },
+        saveTag(){
+            if (this.editedIndex > -1) {
+                this.putTag()
+            } else {
+                this.postTag()
+            }
+            this.closeTagDialog()
+        },
+        deleteDialog() {
+            this.deleteTag()
+            this.closeTagDialog()
+        }
     }
 }
 </script>
