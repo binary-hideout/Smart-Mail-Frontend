@@ -240,7 +240,7 @@ export default {
                 .catch(function (error) {
                     console.log(error);
                 });
-                console.log(this.editedItem);
+            this.cases.push(this.editedItem)
         },
         updateCase() {
             axios.put(`https://smart-mail-api.azurewebsites.net/case/${this.editedItem.title}`, {
@@ -254,6 +254,7 @@ export default {
                 .catch(function (error) {
                     console.log(error);
                 });
+            Object.assign(this.cases[this.editedIndex], this.editedItem)
         },
         deleteCase() {
             axios.delete(`https://smart-mail-api.azurewebsites.net/case/${this.editedItem.title}`)
@@ -263,6 +264,7 @@ export default {
                 .catch(function (error) {
                     console.log(error);
                 })
+            this.cases.splice(this.editedIndex, 1)
         }
     },
 }

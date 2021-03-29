@@ -1,21 +1,15 @@
 <template>
-<v-sheet rounded="lg">
+<v-sheet rounded="md">
     <v-subheader>
         Tags
     </v-subheader>
     <v-list color="transparent" shaped>
         <v-list-item v-for="tag in tags" :key="tag.title" link>
-
             <v-list-item-content>
-                <v-row>
                     <v-list-item-title @click="editTag(tag)">
                         {{ tag.title }}
                     </v-list-item-title>
-                </v-row>
             </v-list-item-content>
-            <v-list-item-icon>
-                <v-icon>mdi-menu</v-icon>
-            </v-list-item-icon>
         </v-list-item>
 
         <v-divider class="my-2"></v-divider>
@@ -73,9 +67,6 @@
                     <v-card-text>
                         <v-container>
                             <v-row>
-                                <v-col cols="12" sm="6" md="4">
-                                    <v-text-field v-model="editedItem.title" label="Title" required></v-text-field>
-                                </v-col>
                                 <v-col cols="12">
                                     <v-color-picker v-model="editedItem.color" dot-size="25" swatches-max-height="200"></v-color-picker>
                                 </v-col>
